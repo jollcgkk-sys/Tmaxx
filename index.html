@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>من أجل تبارك</title>
+    <meta name="description" content="تطبيق خاص ومساحة آمنة لتبارك مع أوس">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 
     <script>
+      // تعريف متغيرات البيئة يدوياً للمتصفح لتجنب أخطاء المكتبات القديمة
+      window.process = { env: {} };
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -16,17 +20,46 @@
               sans: ['Tajawal', 'sans-serif'],
             },
             colors: {
-              primary: '#d65db1', // Soft emotional pink/purple
-              secondary: '#845ec2', // Deep purple
-              accent: '#ff9671', // Warm peach
-              bg: '#fef6fa', // Very light pink background
+              primary: '#d65db1',
+              secondary: '#845ec2',
+              accent: '#ff9671',
+              bg: '#fef6fa',
               card: '#ffffff',
             }
           }
         }
       }
     </script>
-<script type="importmap">
+    
+    <!-- تم حذف importmap لأنه يسبب تعارضاً مع GitHub Pages -->
+
+    <style>
+      #error-container {
+        display: none;
+        padding: 20px;
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #f87171;
+        margin: 20px;
+        border-radius: 8px;
+        font-family: monospace;
+        direction: ltr;
+        text-align: left;
+      }
+      #loading {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fef6fa;
+        z-index: 10;
+        flex-direction: column;
+        gap: 15px;
+        transition: opacity 0.5s;
+      }
+    </style>
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",
@@ -43,9 +76,54 @@
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
+    <!-- شاشة تحميل تظهر حتى يعمل التطبيق -->
+    <div id="loading">
+      <div style="width: 40px; height: 40px; border: 4px solid #d65db1; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <p style="font-family: 'Tajawal'; color: #845ec2;">جاري تحميل مساحة تبارك...</p>
+    </div>
+    <script>
+      const style = document.createElement('style');
+      style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
+      document.head.appendChild(style);
+    </script>
+
+    <!-- مكان ظهور الأخطاء في حال فشل التشغيل -->
+    <div id="error-container"></div>
+
+    <script>
+      // كاشف الأخطاء: إذا حدث خطأ سيظهر هنا بدلاً من الشاشة البيضاء
+      window.onerror = function(message, source, lineno, colno, error) {
+        const errorContainer = document.getElementById('error-container');
+        const loading = document.getElementById('loading');
+        if (loading) loading.style.display = 'none';
+        
+        errorContainer.style.display = 'block';
+        errorContainer.innerHTML = `
+          <strong>Something went wrong:</strong><br>
+          ${message}<br>
+          <small>${source}:${lineno}</small>
+        `;
+        return false;
+      };
+    </script>
+
     <div id="root"></div>
-    <!-- المسار النسبي لملف التشغيل -->
     <script type="module" src="./index.tsx"></script>
+    
+    <script>
+      // إخفاء شاشة التحميل عندما يبدأ التطبيق
+      window.addEventListener('load', () => {
+        // ننتظر قليلاً لنتأكد أن الرياكت بدأ
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root && root.childElementCount > 0) {
+             const loading = document.getElementById('loading');
+             if(loading) loading.style.opacity = '0';
+             setTimeout(() => { if(loading) loading.remove(); }, 500);
+          }
+        }, 1000);
+      });
+    </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>
