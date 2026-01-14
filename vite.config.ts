@@ -3,26 +3,27 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // We use process.cwd() to get the root directory.
   const env = loadEnv(mode, (process as any).cwd(), '');
 
-  // Merge process.env with loaded env to capture system variables too
-  // This ensures variables set in the terminal/shell are also picked up
+  // Merge process.env with loaded env
   const processEnv = { ...process.env, ...env };
 
   return {
     plugins: [react()],
-    base: './', // Ensures paths work correctly on GitHub Pages
+    base: './', // Ensures paths work correctly on GitHub Pages (subpath)
     build: {
       outDir: 'dist',
       emptyOutDir: true,
+      sourcemap: false, // Disable sourcemaps in production for cleaner build
     },
     define: {
-      // 1. Gemini API Key
+      // Polyfill 'process.env' object to prevent crashes if libraries access it directly
+      'process.env': {},
+      
+      // 1. Gemini API Key - Replace specifically
       'process.env.API_KEY': JSON.stringify(processEnv.VITE_API_KEY || processEnv.API_KEY || '__GEMINI_API_KEY__'),
 
-      // 2. Firebase Configuration - Injected as a single global object
-      // We look for VITE_ prefixed variables first, then standard ones
+      // 2. Firebase Configuration
       '__FIREBASE_CONFIG__': JSON.stringify({
         apiKey: processEnv.VITE_FIREBASE_API_KEY || processEnv.FIREBASE_API_KEY || '',
         authDomain: processEnv.VITE_FIREBASE_AUTH_DOMAIN || processEnv.FIREBASE_AUTH_DOMAIN || '',
